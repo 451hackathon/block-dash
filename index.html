@@ -3,7 +3,7 @@
     <title>graph</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <meta charset="utf-8" />
-    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.js"></script>
     </head>
 <body>
     <div class="container">
@@ -22,9 +22,11 @@
         <a id="prevbtn" class="btn btn-primary">Previous</a>
         <a id="nextbtn" class="btn btn-primary">Next</a>
     </div>
-            <div class="col-md-2">
-                <svg id="chart">
-                </svg>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+<canvas id="myChart" width="40" height="40"></canvas>
+
             </div>
         </div>
     </div>
@@ -33,69 +35,36 @@
 var current_page = 0;
 
 function draw_graph(data) {
-            var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                width = 960 - margin.left - margin.right,
-                height = 500 - margin.top - margin.bottom;
-            var y = d3.scale.linear()
-               .domain([0,100])
-               .range([height, 0]);
-            var x = d3.scale.ordinal()
-                .rangeRoundBands([0, width], .1)
-                .domain(d3.entries(data).map(function(d) { return d.key; }));
-            var xAxis = d3.svg.axis()
-                .scale(x)
-                .orient("bottom");
-            var yAxis = d3.svg.axis()
-                .scale(y)
-                .orient("left");
-            var svg = d3.select("body").append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-              svg.append("g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .call(xAxis);
-              svg.append("g")
-                    .attr("class", "y axis")
-                    .call(yAxis)
-                .append("text")
-                    .attr("transform", "rotate(-90)")
-                    .attr("y", 6)
-                    .attr("dy", ".71em")
-                    .style("text-anchor", "end")
-                    .text("Percent");
-            svg.selectAll(".barsuccess")
-                    .data(d3.entries(data))
-                .enter().append("rect")
-                    .attr("class", "barsuccess")
-                    .attr("x", function(d) { return x(d.key) })
-                    .attr("width", x.rangeBand()/2)
-                    .attr("y", function(d) { return y(d.value.success / 200); })
-                    .attr("height", function(d) { return height - y(d.value.success / 200); })
-                    .style( "fill", "orange" );
-            var bar = svg.selectAll(".barfail")
-                    .data(d3.entries(data))
-                .enter().append("rect")
-                    .attr("class", "barfail")
-                    .attr("x", function(d) { return x(d.key) + x.rangeBand()/2 })
-                    .attr("width", x.rangeBand()/2)
-                    .attr("y", function(d) { return y(d.value.fail / 200); })
-                    .attr("height", function(d) { return height - y(d.value.fail / 200); })
-                    .style( "fill", "red" );
-            bar.append("text")
-                    .attr("x", function(d) { return x(d.key) + x.rangeBand() / 2; })
-//                    .attr("y", function(d) { return y(d.value.fail); })
-                    .attr("dx", -3) // padding-right
-                    .attr("dy", ".35em") // vertical-align: middle
-                    .attr("text-anchor", "end") // text-align: right
-                    .text( function(d) { console.log( d.value.period ); return d.value.period; });}
+    
+    keys = Object.keys(data);
+    keys.sort();
+    values = [];
+    $.each(keys, function(idx, obj) {
+        values.push(data[obj]);
+    });
 
 
-function type(d) {
-  d.value = +d.value; // coerce to number
-  return d;
+
+var ctx = document.getElementById("myChart").getContext('2d');
+console.log(Object.keys(data));
+var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: keys,
+        datasets: [{
+            data: values,
+        }]
+    },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        }
+    }
+});
 }
 
 function get_results(page) {
@@ -115,8 +84,8 @@ function get_results(page) {
             
         });
         console.log(counts);
-
         draw_graph(counts);
+
     });
 }
 $(document).ready(function(){
