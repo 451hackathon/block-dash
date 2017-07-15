@@ -3,7 +3,7 @@
     <title>graph</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <meta charset="utf-8" />
-    <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     </head>
 <body>
     <div class="container">
@@ -33,33 +33,64 @@
 var current_page = 0;
 
 function draw_graph(data) {
-    var width = 420, barHeight = 20;
-
-    var x = d3.scale.linear()
-        .range([0, width]);
-
-    var chart = d3.select("#chart")
-        .attr("width", width);
-
-      x.domain([0, d3.max(data, function(d) { return d.value; })]);
-
-      chart.attr("height", barHeight * data.length);
-
-      var bar = chart.selectAll("g")
-          .data(data)
-        .enter().append("g")
-          .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
-
-      bar.append("rect")
-          .attr("width", function(d) { return x(d.value); })
-          .attr("height", barHeight - 1);
-
-      bar.append("text")
-          .attr("x", function(d) { return x(d.value) - 3; })
-          .attr("y", barHeight / 2)
-          .attr("dy", ".35em")
-          .text(function(d) { return d.value; });
-}
+            var margin = {top: 20, right: 20, bottom: 30, left: 40},
+                width = 960 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
+            var y = d3.scale.linear()
+               .domain([0,100])
+               .range([height, 0]);
+            var x = d3.scale.ordinal()
+                .rangeRoundBands([0, width], .1)
+                .domain(d3.entries(data).map(function(d) { return d.key; }));
+            var xAxis = d3.svg.axis()
+                .scale(x)
+                .orient("bottom");
+            var yAxis = d3.svg.axis()
+                .scale(y)
+                .orient("left");
+            var svg = d3.select("body").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+              svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis);
+              svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis)
+                .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 6)
+                    .attr("dy", ".71em")
+                    .style("text-anchor", "end")
+                    .text("Percent");
+            svg.selectAll(".barsuccess")
+                    .data(d3.entries(data))
+                .enter().append("rect")
+                    .attr("class", "barsuccess")
+                    .attr("x", function(d) { return x(d.key) })
+                    .attr("width", x.rangeBand()/2)
+                    .attr("y", function(d) { return y(d.value.success / 200); })
+                    .attr("height", function(d) { return height - y(d.value.success / 200); })
+                    .style( "fill", "orange" );
+            var bar = svg.selectAll(".barfail")
+                    .data(d3.entries(data))
+                .enter().append("rect")
+                    .attr("class", "barfail")
+                    .attr("x", function(d) { return x(d.key) + x.rangeBand()/2 })
+                    .attr("width", x.rangeBand()/2)
+                    .attr("y", function(d) { return y(d.value.fail / 200); })
+                    .attr("height", function(d) { return height - y(d.value.fail / 200); })
+                    .style( "fill", "red" );
+            bar.append("text")
+                    .attr("x", function(d) { return x(d.key) + x.rangeBand() / 2; })
+//                    .attr("y", function(d) { return y(d.value.fail); })
+                    .attr("dx", -3) // padding-right
+                    .attr("dy", ".35em") // vertical-align: middle
+                    .attr("text-anchor", "end") // text-align: right
+                    .text( function(d) { console.log( d.value.period ); return d.value.period; });}
 
 
 function type(d) {
