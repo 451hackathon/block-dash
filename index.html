@@ -2,11 +2,13 @@
 <head>
     <title>graph</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <meta charset="utf-8" />
+    <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
     </head>
 <body>
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-10">
     <h1>451 Results</h1>
 
     <table class="table table-striped" id="results">
@@ -16,27 +18,89 @@
             <th>Blocked by</th>
         </tr>
     </table>
-    <div><a id="nextbtn" class="btn btn-primary">Next</a></div>
-
+    <div>
+        <a id="prevbtn" class="btn btn-primary">Previous</a>
+        <a id="nextbtn" class="btn btn-primary">Next</a>
+    </div>
+            <div class="col-md-2">
+                <svg id="chart">
+                </svg>
             </div>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript">
 var current_page = 0;
+
+function draw_graph(data) {
+    var width = 420, barHeight = 20;
+
+    var x = d3.scale.linear()
+        .range([0, width]);
+
+    var chart = d3.select("#chart")
+        .attr("width", width);
+
+      x.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+      chart.attr("height", barHeight * data.length);
+
+      var bar = chart.selectAll("g")
+          .data(data)
+        .enter().append("g")
+          .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+
+      bar.append("rect")
+          .attr("width", function(d) { return x(d.value); })
+          .attr("height", barHeight - 1);
+
+      bar.append("text")
+          .attr("x", function(d) { return x(d.value) - 3; })
+          .attr("y", barHeight / 2)
+          .attr("dy", ".35em")
+          .text(function(d) { return d.value; });
+}
+
+
+function type(d) {
+  d.value = +d.value; // coerce to number
+  return d;
+}
+
 function get_results(page) {
     $.get('http://31.133.136.208:1337/report?$limit=10&$skip=' + (page*10), function (data,status,xhr){
+        var counts = new Object();
         $.each(data, function(idx, obj) {
             var el = $('<tr class="result"><td>' + obj.date + '</td><td>' + obj.url + '</td><td>' + obj.blockedBy + '</td></tr>');
             $('#results').append(el)
+
+            if (obj.date) {
+                key =  obj.date.split(':')[0] ;
+                if (!(key in counts)) {
+                    counts[key] = 0;
+                }
+                counts[ key] ++;
+            }
+            
         });
+        console.log(counts);
+
+        draw_graph(counts);
     });
 }
 $(document).ready(function(){
+    $('#prevbtn').hide();
     get_results(current_page);
 
+    $('#prevbtn').click(function(){
+        current_page--;
+        if (current_page <1 ) {
+            $('#prevbtn').hide();
+        };
+    });
     $('#nextbtn').click(function(){
         current_page ++;
+        $('#prevbtn').show();
         $('#results * .result').remove();
         get_results(current_page);
     });
