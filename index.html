@@ -1,0 +1,48 @@
+<html>
+<head>
+    <title>graph</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    </head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+    <h1>451 Results</h1>
+
+    <table class="table table-striped" id="results">
+        <tr>
+            <th>Date</th>
+            <th>URL</th>
+            <th>Blocked by</th>
+        </tr>
+    </table>
+    <div><a id="nextbtn" class="btn btn-primary">Next</a></div>
+
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript">
+var current_page = 0;
+function get_results(page) {
+    $.get('http://31.133.136.208:1337/report?$limit=10&$skip=' + (page*10), function (data,status,xhr){
+        $.each(data, function(idx, obj) {
+            var el = $('<tr class="result"><td>' + obj.date + '</td><td>' + obj.url + '</td><td>' + obj.blockedBy + '</td></tr>');
+            $('#results').append(el)
+        });
+    });
+}
+$(document).ready(function(){
+    get_results(current_page);
+
+    $('#nextbtn').click(function(){
+        current_page ++;
+        $('#results * .result').remove();
+        get_results(current_page);
+    });
+})
+    </script>
+</body>
+</html>
+
+
