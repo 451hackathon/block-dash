@@ -8,25 +8,31 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-12">
-    <h1>451 Results</h1>
+            <div class="col-md-10">
+                <h1>451 Results</h1>
+            </div>
+            <div class="col-md-2" style="padding-top: 1.33em; text-align: right;">
+                <a id="prevbtn" class="btn btn-primary">Previous</a>
+                <a id="nextbtn" class="btn btn-primary">Next</a>
+            </div>
+        </div>
 
-    <table class="table table-striped" id="results">
-        <tr>
-            <th>Date</th>
-            <th>URL</th>
-            <th>Blocked by</th>
-            <th>Report ID</th>
-        </tr>
-    </table>
-    <div>
-        <a id="prevbtn" class="btn btn-primary">Previous</a>
-        <a id="nextbtn" class="btn btn-primary">Next</a>
-    </div>
+        <div class="row">
+            <div class="col-md-12">
+
+                <table class="table table-striped" id="results">
+                    <tr>
+                        <th>Date</th>
+                        <th>URL</th>
+                        <th>Blocked by</th>
+                        <th>Report ID</th>
+                    </tr>
+                </table>
+            </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-<canvas id="myChart" width="100%" height="40"></canvas>
+<canvas id="myChart" width="100%" height="20"></canvas>
 
             </div>
         </div>
@@ -40,33 +46,33 @@ function draw_graph(data) {
     
     keys = Object.keys(data);
     keys.sort();
+    keys.reverse();
     values = [];
     $.each(keys, function(idx, obj) {
         values.push(data[obj]);
     });
 
-
-
-var ctx = document.getElementById("myChart").getContext('2d');
-console.log(Object.keys(data));
-var myChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: keys,
-        datasets: [{
-            data: values,
-        }]
-    },
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero:true
-                }
+    var ctx = document.getElementById("myChart").getContext('2d');
+    console.log(Object.keys(data));
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: keys,
+            datasets: [{
+                label: "Requests/hr",
+                data: values,
             }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
         }
-    }
-});
+    });
 }
 
 function clear_table() {
