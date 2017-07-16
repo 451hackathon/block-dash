@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <meta charset="utf-8" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
     </head>
 <body>
     <div class="container-fluid">
@@ -63,6 +64,12 @@
 var current_page = 0;
 var COLLECTOR = "https://collector.wirecdn.com/report/";
 
+var icons = {
+    'browser': "fa-chrome",
+    'probe': "fa-cog",
+    'wordpress': "fa-wordpress",
+}
+
 function draw_graph(data) {
     
     keys = Object.keys(data);
@@ -98,13 +105,34 @@ function clear_table(name) {
     $(name+' * .result').remove();
 }
 
+function get_logo(creator) {
+    if (creator == "Error Code 451 Plugin") {
+        return '<i class="fa ' + icons.wordpress + '"></i>';
+    } else if (creator == "451reporter") {
+        return '<i class="fa ' + icons.browser + '"></i>';
+    } else if (creator == "block-crawler") {
+        return '<i class="fa ' + icons.probe + '"></i>';
+    }
+}
+
+
+function create_row(obj) {
+    return $('<tr class="result"><td><span class="glyphicon glyphicon-calendar"></span> ' + 
+            obj.date + '</td><td><span class="glyphicon glyphicon-globe"></span> ' + 
+            obj.url + '</td><td>' + 
+            get_logo(obj.creator) + " " + 
+            obj.blockedBy +  " " +
+            '</td><td><a href="'+COLLECTOR+ obj._id + '">' + 
+            obj._id + '</a> <span class="glyphicon glyphicon-share"></span> </td></tr>');
+}
+
 function get_results(page) {
     $.get(COLLECTOR + '?$limit=10&$sort[date]=-1&$skip=' + (page*10), function (data,status,xhr){
         clear_table('#results');
         var counts = new Object();
         $.each(data, function(idx, obj) {
             console.log(obj);
-            var el = $('<tr class="result"><td><span class="glyphicon glyphicon-calendar"></span> ' + obj.date + '</td><td><span class="glyphicon glyphicon-globe"></span> ' + obj.url + '</td><td>' + obj.blockedBy + '</td><td><a href="'+COLLECTOR+ obj._id + '">' + obj._id + '</a> <span class="glyphicon glyphicon-share"></span> </td></tr>');
+            var el = create_row(obj);
             $('#results').append(el)
 
             if (obj.date) {
@@ -129,7 +157,7 @@ function get_results_sites(page) {
         clear_table('#results_sites');
         $.each(data, function(idx, obj) {
             console.log(obj);
-            var el = $('<tr class="result"><td><span class="glyphicon glyphicon-calendar"></span> ' + obj.date + '</td><td><span class="glyphicon glyphicon-globe"></span> ' + obj.url + '</td><td>' + obj.blockedIn + '</td><td><a href="'+COLLECTOR+ obj._id + '">' + obj._id + '</a> <span class="glyphicon glyphicon-share"></span> </td></tr>');
+            var el = create_row(obj);
             $('#results_sites').append(el)
             
         });
