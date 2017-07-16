@@ -11,9 +11,9 @@
             <div class="col-md-10">
                 <h1>451 Results</h1>
             </div>
-            <div class="col-md-2" style="padding-top: 1.33em; text-align: right;">
-                <a id="prevbtn" class="btn btn-primary">Previous</a>
-                <a id="nextbtn" class="btn btn-primary">Next</a>
+            <div class="col-md-2" style="padding-top: 2em; text-align: right;">
+                <a id="prevbtn" class="btn btn-primary"><span class="glyphicon glyphicon-backward"></span></a>
+                <a id="nextbtn" class="btn btn-primary"><span class="glyphicon glyphicon-forward"></span></a>
             </div>
         </div>
 
@@ -45,8 +45,6 @@ var COLLECTOR = "http://collector.wirecdn.com/report/";
 function draw_graph(data) {
     
     keys = Object.keys(data);
-    keys.sort();
-    keys.reverse();
     values = [];
     $.each(keys, function(idx, obj) {
         values.push(data[obj]);
@@ -80,7 +78,7 @@ function clear_table() {
 }
 
 function get_results(page) {
-    $.get(COLLECTOR + '?$limit=10&$skip=' + (page*10), function (data,status,xhr){
+    $.get(COLLECTOR + '?$limit=10&$sort[date]=-1&$skip=' + (page*10), function (data,status,xhr){
         clear_table();
         var counts = new Object();
         $.each(data, function(idx, obj) {
