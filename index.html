@@ -6,9 +6,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.js"></script>
     </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
     <h1>451 Results</h1>
 
     <table class="table table-striped" id="results">
@@ -16,6 +16,7 @@
             <th>Date</th>
             <th>URL</th>
             <th>Blocked by</th>
+            <th>Report ID</th>
         </tr>
     </table>
     <div>
@@ -24,8 +25,8 @@
     </div>
         </div>
         <div class="row">
-            <div class="col-md-4">
-<canvas id="myChart" width="40" height="40"></canvas>
+            <div class="col-md-12">
+<canvas id="myChart" width="100%" height="40"></canvas>
 
             </div>
         </div>
@@ -33,6 +34,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript">
 var current_page = 0;
+var COLLECTOR = "http://collector.wirecdn.com/report/";
 
 function draw_graph(data) {
     
@@ -67,11 +69,17 @@ var myChart = new Chart(ctx, {
 });
 }
 
+function clear_table() {
+    $('#results * .result').remove();
+}
+
 function get_results(page) {
-    $.get('http://31.133.136.208:1337/report?$limit=10&$skip=' + (page*10), function (data,status,xhr){
+    $.get(COLLECTOR + '?$limit=10&$skip=' + (page*10), function (data,status,xhr){
+        clear_table();
         var counts = new Object();
         $.each(data, function(idx, obj) {
-            var el = $('<tr class="result"><td>' + obj.date + '</td><td>' + obj.url + '</td><td>' + obj.blockedBy + '</td></tr>');
+            console.log(obj);
+            var el = $('<tr class="result"><td>' + obj.date + '</td><td>' + obj.url + '</td><td>' + obj.blockedBy + '</td><td><a href="'+COLLECTOR+ obj._id + '">' + obj._id + '</a></td></tr>');
             $('#results').append(el)
 
             if (obj.date) {
@@ -84,7 +92,9 @@ function get_results(page) {
             
         });
         console.log(counts);
-        draw_graph(counts);
+        if (page == 0) {
+            draw_graph(counts);
+        }
 
     });
 }
@@ -97,11 +107,11 @@ $(document).ready(function(){
         if (current_page <1 ) {
             $('#prevbtn').hide();
         };
+        get_results(current_page);
     });
     $('#nextbtn').click(function(){
         current_page ++;
         $('#prevbtn').show();
-        $('#results * .result').remove();
         get_results(current_page);
     });
 })
