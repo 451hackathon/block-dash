@@ -1,0 +1,10 @@
+{
+  "url": "http://www.example.com",
+  "creator":"exampleclient",
+  "version": "0.0.1",
+  "status": 451,
+  "statusText": "Unavailable for legal reasons",
+  "blockedBy": "EvilCorp",
+  "date": "20170601T112027"
+} 
+
