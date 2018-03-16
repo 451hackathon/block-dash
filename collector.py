@@ -4,7 +4,7 @@ import datetime
 import psycopg2
 from psycopg2.extras import DictCursor
 
-from flask import Flask, g, request, jsonify, config
+from flask import Flask, g, request, jsonify, config, render_template
 
 app = Flask(__name__)
 app.config.from_object('settings')
@@ -15,8 +15,7 @@ def db_connect():
 
 @app.route('/')
 def index():
-    with open('../block-dash/index.html') as fp:
-        return fp.read()
+    return render_template('index.html', counts=get_counts('2017-06-01','2017-07-01','day'))
 
 @app.route('/report/<int:id>', methods=['GET'])
 def load_report(id):
@@ -77,6 +76,14 @@ def report_data_rate(start=None, end=None, interval='day'):
         today = datetime.date.today()
         end = today.replace(month=today.month+1, day=1) # start of next month
 
+    data = get_counts(start, end, interval)
+    g.conn.commit()
+
+    return jsonify(data=data)
+        
+        
+def get_counts(start, end, interval):
+    app.logger.info("Start: %s, End: %s", start, end)
     c = g.conn.cursor()
     c.execute("""
         select 
@@ -94,10 +101,10 @@ def report_data_rate(start=None, end=None, interval='day'):
 
     data = []
     for row in c:
+        app.logger.info(row)
         data.append({'date':row[0].strftime('%Y-%m-%d'), 'count': row[1]})
-
-    return jsonify(data=data)
-        
+    c.close()
+    return data
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

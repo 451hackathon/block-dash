@@ -1,0 +1,190 @@
+<html>
+<head>
+    <title>graph</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <meta charset="utf-8" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    </head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-10">
+                <h1>451 Reports</h1>
+            </div>
+            <div class="col-md-2" style="padding-top: 2em; text-align: right;">
+                <a id="prevbtn" class="btn btn-primary"><span class="glyphicon glyphicon-backward"></span></a>
+                <a id="nextbtn" class="btn btn-primary"><span class="glyphicon glyphicon-forward"></span></a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+
+                <table class="table table-striped" id="results">
+                    <tr>
+                        <th>Date</th>
+                        <th>URL</th>
+                        <th>Blocked by</th>
+                        <th>Report ID</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-10">
+                <h1>Sites implementing 451</h1>
+            </div>
+            <div class="col-md-2" style="padding-top: 2em; text-align: right;">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+
+                <table class="table table-striped" id="results_sites">
+                    <tr>
+                        <th>Date</th>
+                        <th>URL</th>
+                        <th>Blocked In</th>
+                        <th>Report ID</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+<canvas id="myChart" width="100%" height="20"></canvas>
+
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript">
+var current_page = 0;
+//var COLLECTOR = "https://collector.wirecdn.com/report/";
+var COLLECTOR = 'http://localhost:5000/report/';
+
+var icons = {
+    'browser': "fa-chrome",
+    'probe': "fa-cog",
+    'wordpress': "fa-wordpress",
+}
+
+function draw_graph(data) {
+    
+    keys = [];
+    values = [];
+    $.each(data, function(idx, obj) {
+        keys.push(obj['date']);
+        values.push(obj['count']);
+    });
+
+    var ctx = document.getElementById("myChart").getContext('2d');
+    console.log(Object.keys(data));
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: keys,
+            datasets: [{
+                label: "Requests/hr",
+                data: values,
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
+}
+
+function clear_table(name) {
+    $(name+' * .result').remove();
+}
+
+function get_logo(creator) {
+    if (creator == "Error Code 451 Plugin") {
+        return '<i class="fa ' + icons.wordpress + '"></i>';
+    } else if (creator == "451reporter") {
+        return '<i class="fa ' + icons.browser + '"></i>';
+    } else if (creator == "block-crawler") {
+        return '<i class="fa ' + icons.probe + '"></i>';
+    } else if (creator == "LegalCrawler") {
+        return '<i class="fa ' + icons.probe + '"></i>';
+    }
+    return "";
+}
+
+
+function create_row(obj) {
+    return $('<tr class="result"><td><span class="glyphicon glyphicon-calendar"></span> ' + 
+            obj.date + '</td><td><span class="glyphicon glyphicon-globe"></span> ' + 
+            obj.url + '</td><td>' + 
+            get_logo(obj.creator) + " " + 
+            obj.blockedBy +  " " +
+            '</td><td><a href="'+COLLECTOR+ obj._id + '">' + 
+            obj._id + '</a> <span class="glyphicon glyphicon-share"></span> </td></tr>');
+}
+
+function get_results(page) {
+    $.get(COLLECTOR + '?$limit=10&$sort[date]=-1&$skip=' + (page*10), function (data,status,xhr){
+        clear_table('#results');
+        $.each(data, function(idx, obj) {
+            console.log(obj);
+            var el = create_row(obj);
+            $('#results').append(el)
+
+            
+            
+        });
+        
+        if (page == 0) {
+
+        }
+
+    });
+}
+
+function get_results_sites(page) {
+    $.get(COLLECTOR + '?blockedIn[$gt]=&$limit=10&$sort[date]=-1&$skip=' + (page*10), function (data,status,xhr){
+        clear_table('#results_sites');
+        $.each(data, function(idx, obj) {
+            console.log(obj);
+            var el = create_row(obj);
+            $('#results_sites').append(el)
+            
+        });
+
+    });
+}
+$(document).ready(function(){
+    $('#prevbtn').hide();
+    get_results(current_page);
+    get_results_sites(0);
+    
+	data = {{ counts | tojson }};
+	draw_graph(data);
+
+    $('#prevbtn').click(function(){
+        current_page--;
+        if (current_page <1 ) {
+            $('#prevbtn').hide();
+        };
+        get_results(current_page);
+    });
+    $('#nextbtn').click(function(){
+        current_page ++;
+        $('#prevbtn').show();
+        get_results(current_page);
+    });
+})
+    </script>
+</body>
+</html>
+
+
