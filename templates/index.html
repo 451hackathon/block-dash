@@ -10,6 +10,13 @@
     {% endif %}
 {% endmacro %}
 
+{% macro stripscheme(s) %}
+{% if s is string %}
+{{ s.replace('http://','').replace('https://','') }}
+{% endif %}
+{% endmacro %}
+
+
 <html>
 <head>
     <title>graph</title>
@@ -52,7 +59,7 @@
                     <tr class="result">
                         <td><span class="glyphicon glyphicon-calendar"></span> {{ obj.date.strftime('%Y-%m-%d %H:%M') }} </td>
                         <td><span class="glyphicon glyphicon-globe"></span> {{ obj.url  }} </td>
-                        <td>{{ get_logo(obj.creator) }} {{ obj.blockedBy }}</td>
+                        <td>{{ get_logo(obj.creator) }} {{ stripscheme(obj.blockedBy) }}</td>
                         <td><a href="{{url_for('.load_report', id=obj.id) }}">{{obj.id}}</a> <span class="glyphicon glyphicon-share"></span> </td>
                     </tr>
                     {% endfor %}
