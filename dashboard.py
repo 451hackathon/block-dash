@@ -18,7 +18,7 @@ def db_connect():
     g.conn = psycopg2.connect(app.config['DB'])
 
 @app.after_request
-def db_commit():
+def db_commit(rsp):
     g.conn.commit()
 
 @app.route('/')
