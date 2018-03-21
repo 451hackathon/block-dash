@@ -17,6 +17,10 @@ app.config.from_object('settings')
 def db_connect():
     g.conn = psycopg2.connect(app.config['DB'])
 
+@app.after_request
+def db_commit():
+    g.conn.commit()
+
 @app.route('/')
 @app.route('/page/<int:page>')
 def index(page=1):
@@ -24,8 +28,8 @@ def index(page=1):
                            counts=({'date':str(x['date']), 'count':x['count']}
                                     for x in 
                                     get_counts(get_start_current_month(),
-                                             get_start_next_month(),
-                                             'day')),
+                                               get_start_next_month(),
+                                               'day')),
                            page=page,   
                            pagecount=get_report_count(),  
                            reports=get_reports(page-1))
