@@ -20,6 +20,7 @@ def db_connect():
 @app.after_request
 def db_commit(rsp):
     g.conn.commit()
+    return rsp
 
 @app.route('/')
 @app.route('/page/<int:page>')
